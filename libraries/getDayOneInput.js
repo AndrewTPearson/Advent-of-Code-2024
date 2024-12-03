@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const inputs = fs.readFileSync(path.join(__dirname, './day-one-input.txt'), 'utf8');
+const inputs = fs.readFileSync(path.join(__dirname, '../inputs/day-one-input.txt'), 'utf8');
 
 // get the inputs
 
