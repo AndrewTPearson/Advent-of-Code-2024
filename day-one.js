@@ -49,27 +49,32 @@ function mergeSortedArrays(arrayOne, arrayTwo) {
   return answer;
 }
 function mergeSort(arr) {
-  let arrayOfAll = arr.map(el => [el]);
-  console.log(arrayOfAll[0], arrayOfAll[0][0]);
-  while (arrayOfAll.length > 1) {
-    let next = [];
-    for (let i = 0; i < arrayOfAll.length; i += 2) {
-      next += mergeSortedArrays(arrayOfAll[0], arrayOfAll[1]);
-    }
-    arrayOfAll = next;
-  }
-  return arrayOfAll[0];
+  // Base case: if array is 1 or fewer elements, it's already sorted
+  if (arr.length <= 1) return arr;
+
+  // Split the array in half
+  const mid = Math.floor(arr.length / 2);
+  const left = arr.slice(0, mid);
+  const right = arr.slice(mid);
+
+  // Recursively sort both halves
+  return mergeSortedArrays(mergeSort(left), mergeSort(right));
 }
 
 let leftList = mergeSort(arr1);
 let rightList = mergeSort(arr2);
 
-console.log(leftList[0]);
-console.log(rightList[0]);
+
 for (let i = 0; i < leftList.length - 1; i++) {
   if (leftList[i] > leftList[i + 1]) console.log('error');
   if (rightList[i] > rightList[i + 1]) console.log('error');
 }
-console.log('here');
+
 
 // make a third array of all the differences, then sum up the differences
+
+let totalDistance = 0;
+for (let i = 0; i < leftList.length; i++) {
+  totalDistance += Math.abs(leftList[i] - rightList[i]);
+}
+console.log(totalDistance);
