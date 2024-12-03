@@ -2,110 +2,90 @@ const getInputs = require('../libraries/getDayTwoInput');
 const testData = require('../inputs/dayTwoTestInput');
 
 
-function checkIfReportIsSafe(report) {
-  if (report.length <= 2) return true;
+function checkIfReportIsSafe(report, exceptionUsed = false) {
+  // if (exceptionUsed) console.log('called with report', report, "and exceptionUsed", exceptionUsed);
+  // any report with zero or one numbers is by definition safe
+  if (report.length < 2) return true;
 
-  let removes = 0;
-  let toremove;
+  //any report with two numbers can be made safe by definition by removing one
+  if (report.length === 2 && !exceptionUsed) return true;
 
-  // check for, and remove, duplicates;
+  // go through the report, starting with the second number
+  // if a problem is found and the exception has been used, return false
+  // if a problem is found and the exception has not been used, try removing each and call this method on the resulting arrays
+
+  // check for duplicates
   for (let i = 1; i < report.length; i++) {
     if (report[i] === report[i - 1]) {
-      removes++;
-      toremove = i;
+      if (exceptionUsed) {
+        return false;
+      }
+      let subReport = [...report];
+      subReport.splice(i, 1);
+      return checkIfReportIsSafe(subReport, true);
     }
   }
-  if (removes > 1) {
-    duplicates++;
-    return false;
-  }
-  if (removes === 1) report.splice(toremove, 1);
-
-  // check for consistent direction;
+  // check if the report can be consistently increasing or decreasing by 1 to 3
   let ascents = 0;
   let descents = 0;
   for (let i = 1; i < report.length; i++) {
-    report[i] > report[i - 1] ? ascents++ : descents++;
+    if (report[i] > report[i - 1]) ascents++;
+    if (report[i] < report[i - 1]) descents++;
   }
-  // cases where there is change in direction, and therefore at least one number must be removed
-  if (ascents !== 0 && descents !== 0) {
-    // check we haven't already removed a number, and that there is at most one number to remove
-    if (removes === 1) {
-      tooManyChangesDirection++;
-      return false;
+  // if it is possible to solve by removing one, there will be a max of one move in the wrong direction
+  if (ascents >= 2 && descents >= 2) {
+    return false;
+  }
+  if (ascents >= 1 && descents >= 1 && exceptionUsed) {
+    return false;
+  }
+  let ascending = ascents > descents;
+  let sinBin = [];
+
+  for (let i = 1; i < report.length; i++) {
+    if (report[i] > report[i - 1] !== ascending) {
+      sinBin.push(i - 1);
+      sinBin.push(i);
     }
-    if (ascents > 1 && descents > 1) {
-      tooManyChangesDirection++;
-      return false;
-    }
-    // case where descending with one exception
-    if (ascents === 1) {
-      // find the exception, generate the cases where we remove each number
-      let oneRemovedCases = [[...report], [...report]];
-      for (let i = 1; i < report.length; i++) {
-        if (report[i] > report[i - 1]) {
-          oneRemovedCases[0].splice(i - 1, 1);
-          oneRemovedCases[1].splice(i, 1);
-          break;
-        }
-      }
-      // check if either of these is consistently decreasing by between one and three
-      for (let oneRemoved of oneRemovedCases) {
-        let works = true;
-        for (let i = 1; i < report.length; i++) {
-          if (oneRemoved[i - 1] - oneRemoved[i] > 3) works = false;
-        }
-        if (works) return true;
-      }
-      tooLargeJumps++;
-      return false;
-
-
-    } else {
-      // case where ascending with one exception
-      // find the exception, generate the cases where we remove each number
-      let oneRemovedCases = [[...report], [...report]];
-      for (let i = 1; i < report.length; i++) {
-        if (report[i] < report[i - 1]) {
-          oneRemovedCases[0].splice(i - 1, 1);
-          oneRemovedCases[1].splice(i, 1);
-          break;
-        }
-      }
-
-      // check if either of these is consistently increasing by between one and three
-      for (let oneRemoved of oneRemovedCases) {
-        let works = true;
-        for (let i = 1; i < report.length; i++) {
-          if (oneRemoved[i] - oneRemoved[i - 1] > 3) works = false;
-        }
-        if (works) return true;
-      }
-      tooLargeJumps++;
-      return false;
+    if (Math.abs(report[i] - report[i - 1]) > 3) {
+      sinBin.push(i - 1);
+      sinBin.push(i);
     }
   }
 
+  sinBin = sinBin.filter((value, index) => sinBin.indexOf(value) === index);
+  // console.log('sinBin:', sinBin);
+  if ((exceptionUsed && sinBin.length > 0) || sinBin.length > 3) {
+    return false;
+  }
+  if (sinBin.length === 2 || sinBin.length === 3) {
+    let subReports = [];
+    for (let i = 0; i < sinBin.length; i++) {
+      subReports.push([...report]);
+      subReports[i].splice(sinBin[i], 1);
+    }
+    // console.log('subReports:', subReports);
+    for (let subReport of subReports) {
+      if (checkIfReportIsSafe(subReport, true)) return true;
+    }
+    return false;
+
+  }
+  if (sinBin.length === 0) return true;
+
+  console.log('should not be here');
 }
 
-let duplicates = 0;
-let tooManyChangesDirection = 0;
-let tooLargeJumps = 0;
-
+// const allReports = testData;
 const allReports = getInputs();
 let safeReports = 0;
 for (let report of allReports) {
+  // console.log("base level report:", report);
   if (checkIfReportIsSafe(report)) {
     safeReports++;
   } else {
-    if (checkIfReportIsSafe(report) !== false) {
-      console.log(report, 'no result');
-    }
+    console.log('found unsafe:', report);
   }
 }
 
-console.log(`Of ${allReports.length} reports, I found that ${safeReports} are safe.
-${duplicates} were rejected due to duplicate numbers;
-${tooManyChangesDirection} due to too many changes of direction;
-and ${tooLargeJumps} due to too many large jumps.
-`);
+console.log(`Of ${allReports.length} reports, I found that ${safeReports} are safe.`);
