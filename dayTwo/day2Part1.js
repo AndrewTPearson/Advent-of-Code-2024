@@ -1,5 +1,5 @@
-const getInputs = require('./libraries/getDayTwoInput');
-const testData = require('./inputs/dayTwoTestInput');
+const getInputs = require('../libraries/getDayTwoInput');
+const testData = require('../inputs/dayTwoTestInput');
 
 
 function checkIfReportIsSafe(report) {

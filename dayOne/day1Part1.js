@@ -1,4 +1,4 @@
-const getSortedInputs = require('./libraries/getSortedDayOneInputs');
+const getSortedInputs = require('../libraries/getSortedDayOneInputs');
 
 const [leftList, rightList] = getSortedInputs();
 
