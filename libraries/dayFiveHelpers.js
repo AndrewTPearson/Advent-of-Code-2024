@@ -51,7 +51,9 @@ function convertTextToManuals(text) {
 function testRuleCompliance(manual, preceders, followers) {
   let banned = [];
   for (let i = 0; i < manual.length; i++) {
-    if (banned.includes(manual[i])) return false;
+    if (banned.includes(manual[i])) {
+      return false;
+    }
     if (followers.includes(manual[i])) {
       // compile list of indexes in list of followers where the manual element appears
       let checkAgainst = [];
