@@ -3,16 +3,19 @@ const path = require('path');
 const map = fs.readFileSync(path.join(__dirname, '../inputs/day-six-input.txt'), 'utf8');
 const testMap = fs.readFileSync(path.join(__dirname, '../inputs/day-six-test-input.txt'), 'utf8');
 
-const activeMap = testMap;
-// const activeMap = map;
+// const activeMap = testMap;
+const activeMap = map;
 
-const rows = ['..........'];
+const rows = [''];
 for (let i = 0; i < activeMap.length; i++) {
   if (activeMap[i] === '\n') {
-    rows.push('..........');
+    rows.push('');
   } else {
     rows[rows.length - 1] += activeMap[i];
   }
+}
+for (let i = 0; i < rows.length; i++) {
+  rows[i] = rows[i] += '............'
 }
 
 function findNextSpace(location, facing) {

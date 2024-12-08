@@ -29,21 +29,30 @@ for (let i = 0; i < operatorsText.length; i++) {
 currentRow.push(parseInt(currentNumber));
 actualOperators.push(currentRow);
 
-function solve() {
+function solvePart(part = 2) {
   let achievableTargets = 0;
   let totalCalibrationResult = 0;
   const [targets, operators] = [actualTargets, actualOperators];
-  for (let i = 0; i < targets.length; i++) {
-    if (testOperators(targets[i], operators[i].slice(1), operators[i][0])) {
-      achievableTargets++;
-      totalCalibrationResult += targets[i];
+  if (part === 1) {
+    for (let i = 0; i < targets.length; i++) {
+      if (testOperatorsV1(targets[i], operators[i].slice(1), operators[i][0])) {
+        achievableTargets++;
+        totalCalibrationResult += targets[i];
+      }
+    }
+  } else if (part === 2) {
+    for (let i = 0; i < targets.length; i++) {
+      if (testOperatorsV2(targets[i], operators[i].slice(1), operators[i][0])) {
+        achievableTargets++;
+        totalCalibrationResult += targets[i];
+      }
     }
   }
   console.log(achievableTargets, 'lines are achievable');
   console.log('total calibration result:', totalCalibrationResult);
 }
 
-function testOperators(target, operators, runningTotal) {
+function testOperatorsV1(target, operators, runningTotal) {
   // console.log('called with operators array of length', operators.length)
   // base cases: operators is empty
   if (operators.length === 0) {
@@ -51,12 +60,24 @@ function testOperators(target, operators, runningTotal) {
     return false;
   }
   // iterations
-  if (testOperators(target, operators.slice(1), runningTotal + operators[0])) return true;
-  if (testOperators(target, operators.slice(1), runningTotal * operators[0])) return true;
-  if (testOperators(target, operators.slice(1), concatenateNumbers(runningTotal, operators[0]))) return true;
+  if (testOperatorsV1(target, operators.slice(1), runningTotal + operators[0])) return true;
+  if (testOperatorsV1(target, operators.slice(1), runningTotal * operators[0])) return true;
   return false;
 }
-solve();
+function testOperatorsV2(target, operators, runningTotal) {
+  // console.log('called with operators array of length', operators.length)
+  // base cases: operators is empty
+  if (operators.length === 0) {
+    if (runningTotal === target) return true;
+    return false;
+  }
+  // iterations
+  if (testOperatorsV2(target, operators.slice(1), runningTotal + operators[0])) return true;
+  if (testOperatorsV2(target, operators.slice(1), runningTotal * operators[0])) return true;
+  if (testOperatorsV2(target, operators.slice(1), concatenateNumbers(runningTotal, operators[0]))) return true;
+  return false;
+}
+solvePart(2);
 
 function concatenateNumbers(num1, num2) {
   return parseInt(num1.toString() + num2.toString());

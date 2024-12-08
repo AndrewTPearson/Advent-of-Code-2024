@@ -1,13 +1,52 @@
 const { rows, findNextSpace, turnRight, findStart } = require('../libraries/daySixHelpers');
 
 let possibleBlocks = [];
-let caseStudy = true;
 
 function solve() {
   let start = findStart();
   traceGuardPath(start, 'up');
-  console.log(possibleBlocks.length, 'blocks found');
+
   // console.log(rows);
+  let noughts = 0;
+  for (let row of rows) {
+    for (let i = 0; i < row.length; i++) {
+      if (row[i] === '0') noughts++;
+    }
+  }
+  console.log(noughts, 'noughts on initial run. now validating');
+
+  let allNoughts = [];
+  for (let i = 0; i < rows.length; i++) {
+    for (let j = 0; j < rows[i].length; j++) {
+      if (rows[i][j] === '0') allNoughts.push([i, j]);
+    }
+  }
+  let verifiedNoughts = [];
+  for (let [i, j] of allNoughts) {
+    let newString = rows[i].slice(0, j);
+    newString += '#';
+    newString += rows[i].slice(j + 1);
+    rows[i] = newString;
+
+    let mouseOne = [start, 'up'];
+    let mouseTwo = [start, 'up'];
+    let inStableLoop = false;
+    while ((!!mouseOne && !!mouseTwo) && !inStableLoop) {
+      mouseOne = advance(mouseOne);
+      if (!!mouseOne) mouseOne = advance(mouseOne);
+      if (!!mouseOne && !!mouseTwo && miceInSameSpot(mouseOne, mouseTwo)) {
+        inStableLoop = true;
+      }
+      mouseTwo = advance(mouseTwo);
+    }
+    if (inStableLoop) verifiedNoughts.push([i, j]);
+    newString = rows[i].slice(0, j);
+    newString += '0';
+    newString += rows[i].slice(j + 1);
+    rows[i] = newString;
+  }
+  console.log('verified noughts', verifiedNoughts.length);
+  console.log(possibleBlocks.length, 'possible blocks, some of these are probably duplicates');
   return possibleBlocks.length;
 }
 solve();
@@ -34,12 +73,10 @@ function traceGuardPath(startLocation, startFacing) {
   // does not need to return anything
 }
 function traceHypotheticalGuardPath(startLocation, startFacing, hypotheticalBlocker) {
-  if (caseStudy) console.log('start', startLocation);
-  if (caseStudy) console.log('hypo blocker', hypotheticalBlocker);
   // place the hypothetical blocker
   const storedMarking = rows[hypotheticalBlocker[0]][hypotheticalBlocker[1]];
   let newString = rows[hypotheticalBlocker[0]].slice(0, hypotheticalBlocker[1]);
-  newString += 'X';
+  newString += '#';
   newString += rows[hypotheticalBlocker[0]].slice(hypotheticalBlocker[1] + 1);
   rows[hypotheticalBlocker[0]] = newString;
   // define two guards, move guard one twice, then guard one once
@@ -47,15 +84,10 @@ function traceHypotheticalGuardPath(startLocation, startFacing, hypotheticalBloc
   // location and have the same direction
   let mouseOne = [startLocation, startFacing];
   let mouseTwo = [startLocation, startFacing];
-  if (caseStudy) console.log(rows);
-  if (caseStudy) console.log('m1', mouseOne[0][0], mouseOne[0][1], mouseOne[1])
-  if (caseStudy) console.log('m2', mouseTwo[0][0], mouseTwo[0][1], mouseTwo[1])
   let inStableLoop = false;
   while ((!!mouseOne && !!mouseTwo) && !inStableLoop) {
     mouseOne = advance(mouseOne);
-    mouseOne = advance(mouseOne);
-    if (caseStudy) console.log('m1', mouseOne[0][0], mouseOne[0][1], mouseOne[1])
-    if (caseStudy) console.log('m2', mouseTwo[0][0], mouseTwo[0][1], mouseTwo[1])
+    if (!!mouseOne) mouseOne = advance(mouseOne);
     if (!!mouseOne && !!mouseTwo && miceInSameSpot(mouseOne, mouseTwo)) {
       inStableLoop = true;
     }
@@ -65,28 +97,31 @@ function traceHypotheticalGuardPath(startLocation, startFacing, hypotheticalBloc
   // if the faster guard runs off the map, remove the hypothetical blocker then return false
   newString = rows[hypotheticalBlocker[0]].slice(0, hypotheticalBlocker[1]);
   if (storedMarking === '^' || !inStableLoop) {
-    newString += storedMarking
+    newString += storedMarking;
   } else {
     newString += '0';
   }
   newString += rows[hypotheticalBlocker[0]].slice(hypotheticalBlocker[1] + 1);
   rows[hypotheticalBlocker[0]] = newString;
-  caseStudy = false;
   return inStableLoop;
 }
 
 function advance([location, facing]) {
   let front = findNextSpace(location, facing);
-  if (front === false) return false;
-  if (rows[location[0]][location[1]] === 'X') {
+  if (front === false) {
+    return false;
+  }
+  if (rows[front[0]][front[1]] === '#') {
     return [location, turnRight(facing)];
   } else {
     return [front, facing];
   }
 }
 function miceInSameSpot(mouseOne, mouseTwo) {
-  return (mouseOne[0][0] === mouseTwo[0][0] &&
+  if (mouseOne[0][0] === mouseTwo[0][0] &&
     mouseOne[0][1] === mouseTwo[0][1] &&
     mouseOne[1] === mouseTwo[1]
-  );
+  ) {
+    return true;
+  }
 }
