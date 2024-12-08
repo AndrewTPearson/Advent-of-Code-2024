@@ -71,7 +71,6 @@ function testOperatorsV2(target, operators, runningTotal) {
     if (runningTotal === target) return true;
     return false;
   }
-
   if (runningTotal > target) return false;
   // iterations
   if (testOperatorsV2(target, operators.slice(1), runningTotal + operators[0])) return true;
