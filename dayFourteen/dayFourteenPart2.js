@@ -9,51 +9,47 @@ const text = robotsText;
 // const text = testText;
 
 solve();
-
+// 6875 "too low"
 
 function solve() {
   const robots = parseRobotsStarts(text);
-  const endPositions = [];
-  for (let robot of robots) {
-    endPositions.push(calculatePosition(robot, 100));
-  }
-  printRobotLocations(endPositions, true);
-  const safetyFactor = calculateSafetyFactor(endPositions);
-  console.log({ safetyFactor });
-  return safetyFactor
-}
-
-function calculateSafetyFactor(robotLocations) {
-  // takes an array of robot locations, returns the safety factor
-  let [topLeft, topRight, bottomLeft, bottomRight] = [0, 0, 0, 0];
-  console.log('middle row', (rows / 2) - 0.5);
-  console.log('middle col', (cols / 2) - 0.5);
-  for (let location of robotLocations) {
-    if (location.row < ((rows / 2) - 0.5)) {
-      if (location.col < (cols / 2) - 0.5) {
-        topLeft++;
-      } else if (location.col > cols / 2) {
-        topRight++;
-      }
-    } else if (location.row > rows / 2) {
-      if (location.col < ((cols / 2) - 0.5)) {
-        bottomLeft++;
-      } else if (location.col > cols / 2) {
-        bottomRight++;
-      }
+  let prevPositions;
+  let newPositions = robots;
+  // let maxSafety = 0;
+  // let totalSafety = 0;
+  // let minSafety = Infinity;
+  for (let i = 0; i < 6900; i++) {
+    // console.log('seconds elapsed', i);
+    prevPositions = newPositions;
+    newPositions = prevPositions.map((robot) => {
+      return calculatePosition(robot);
+    });
+    // let safetyFactor = calculateSafetyFactor(newPositions);
+    // if (safetyFactor > maxSafety) maxSafety = safetyFactor;
+    // if (safetyFactor < minSafety) minSafety = safetyFactor;
+    // totalSafety += safetyFactor;
+    // if (safetyFactor < 200000000) {
+    //   console.log('seconds elapsed:', i)
+    //   printRobotLocations(newPositions);
+    // }
+    if (i === 6875) {
+      console.log('seconds elapsed:', i + 1);
+      printRobotLocations(newPositions);
     }
   }
-  return topLeft * topRight * bottomLeft * bottomRight;
+  // console.log({ maxSafety, minSafety });
 }
 
-function calculatePosition({ startX, startY, velocityX, velocityY }, iterations) {
+
+
+function calculatePosition({ col, row, velocityX, velocityY }, iterations = 1) {
   // takes a robot's starting position and velocity, along with a number of iterations, and calculates where the
   // robot will be after that many iterations
-  let finishX = (startX + velocityX * iterations) % cols;
-  let finishY = (startY + velocityY * iterations) % rows;
+  let finishX = (col + velocityX * iterations) % cols;
+  let finishY = (row + velocityY * iterations) % rows;
   if (finishX < 0) finishX += cols;
   if (finishY < 0) finishY += rows;
-  return { col: finishX, row: finishY };
+  return { col: finishX, row: finishY, velocityX, velocityY };
 }
 
 function parseRobotsStarts() {
@@ -67,8 +63,8 @@ function parseRobotsStarts() {
       currentRobotNums.push(parseInt(currentNum));
       currentNum = '';
       robots.push({
-        startX: currentRobotNums[0],
-        startY: currentRobotNums[1],
+        col: currentRobotNums[0],
+        row: currentRobotNums[1],
         velocityX: currentRobotNums[2],
         velocityY: currentRobotNums[3]
       });
@@ -81,8 +77,8 @@ function parseRobotsStarts() {
   // final time round
   currentRobotNums.push(parseInt(currentNum));
   robots.push({
-    startX: currentRobotNums[0],
-    startY: currentRobotNums[1],
+    col: currentRobotNums[0],
+    row: currentRobotNums[1],
     velocityX: currentRobotNums[2],
     velocityY: currentRobotNums[3]
   });
@@ -108,11 +104,32 @@ function printRobotLocations(locations, removeMiddles = false) {
         if (removeMiddles && j === (cols / 2) - 0.5) {
           str += ' ';
         } else {
-          arr[i][j] === 0 ? str += '.' : str += arr[i][j];
+          arr[i][j] === 0 ? str += ' ' : str += arr[i][j];
         }
       }
     }
     str += '\n';
   }
   console.log(str);
+}
+
+function calculateSafetyFactor(robotLocations) {
+  // takes an array of robot locations, returns the safety factor
+  let [topLeft, topRight, bottomLeft, bottomRight] = [0, 0, 0, 0];
+  for (let location of robotLocations) {
+    if (location.row < ((rows / 2) - 0.5)) {
+      if (location.col < (cols / 2) - 0.5) {
+        topLeft++;
+      } else if (location.col > cols / 2) {
+        topRight++;
+      }
+    } else if (location.row > rows / 2) {
+      if (location.col < ((cols / 2) - 0.5)) {
+        bottomLeft++;
+      } else if (location.col > cols / 2) {
+        bottomRight++;
+      }
+    }
+  }
+  return topLeft * topRight * bottomLeft * bottomRight;
 }
