@@ -25,6 +25,6 @@ function blinkXTimes(nums, iterations) {
   return current;
 }
 
-let solved = blinkXTimes(nums, 25);
+let solved = blinkXTimes(nums, 45);
 console.log(solved.length);
 // console.log(solved);
