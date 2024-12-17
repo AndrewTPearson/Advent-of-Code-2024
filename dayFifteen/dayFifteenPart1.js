@@ -42,7 +42,7 @@ solve();
 
 function solve() {
   let [map, boxLocations, robotLocation] = parseMapText(mapText);
-
+  printMap(map);
 
   for (let i = 0; i < directions.length; i++) {
     let direction = directions[i];
@@ -50,11 +50,9 @@ function solve() {
   }
 
   let sum = 0;
-  let count = 0;
   for (let boxLocation of boxLocations) {
     sum += 100 * boxLocation.row;
     sum += boxLocation.col;
-    count++;
   }
   console.log('sum of GPS coordinates:', sum);
   return sum;
@@ -86,6 +84,9 @@ function attemptMove({ map, boxLocations, robotLocation, direction }) {
       map[emptyRow][emptyCol] = map[emptyRow][emptyCol + 1];
       let id = map[emptyRow][emptyCol][0];
       if (typeof id === 'number') {
+        // note for cleanup: does not need to reassign row here.
+        // cleaner code would probably be to reassign boxLocations
+        // after these conditionals
         boxLocations[id].row = emptyRow;
         boxLocations[id].col = emptyCol;
       }
