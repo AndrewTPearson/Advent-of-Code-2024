@@ -42,42 +42,29 @@ function parseDesigns(text) {
 }
 
 function countWaysToMakeDesign(design, towels) {
-  let count = 0;
-  for (let towel of towels) {
-    if (towel == design) {
-      count++;
-    } else {
-      if (towel === design.slice(design.length - towel.length)) {
-        count += countWaysToMakeDesign(design.slice(0, design.length - towel.length), towels);
+  let counts = [1];
+  for (let i = 0; i < design.length; i++) {
+    counts.push(0);
+  }
+  for (let i = 0; i < design.length; i++) {
+    for (let towel of towels) {
+      if (towel == design.slice(i, i + towel.length)) {
+        counts[i + towel.length] += counts[i];
       }
     }
   }
-  return count;
+  return counts[design.length];
 }
+
 function solve(designsText, towelsText) {
   const designs = parseDesigns(designsText);
   const towels = parseTowels(towelsText);
   let counter = 0;
   for (let design of designs) {
     let result = countWaysToMakeDesign(design, towels);
-    console.log({ design, result });
     counter += result;
   }
   console.log({ counter });
 }
-
-// solve(designsText, towelPatternsText);
+solve(designsText, towelPatternsText);
 // solve(testDesigns, testTowelPatterns);
-const towels = parseTowels(towelPatternsText);
-let count1 = 0;
-let count2 = 0;
-for (let towel of towels) {
-  count1++;
-  for (let letter of 'qetyiopasdfhjklzxcvnm') {
-    if (towel.includes(letter)) {
-      console.log(towel);
-      count2++;
-    }
-  }
-}
-console.log(count1, count2);
