@@ -16,6 +16,9 @@ const testTrack = `###############
 #.#.#.#.#.#.###
 #...#...#...###
 ###############`;
+const cheatTime = 50;
+
+solve(testTrack);
 
 function solve(track) {
   const map = parseMap(track);
@@ -42,21 +45,50 @@ function solve(track) {
   const rows = map.length;
   const columns = map[0].length;
   const cheatSeconds = 50;
-  // create a set of the numbers which are within 20 spaces of the top-left space
+  // create a set of the numbers which are within cheatTime spaces of the top-left space. Only count those on the same row
+  // or below
   const set = new Set();
-  for (let i = 0; i < 20; i++) {
-    for (let j = 0; i + j < 20; j++) {
+  for (let i = 0; i < cheatTime; i++) {
+    for (let j = 0; i + j < cheatTime; j++) {
+      console.log(typeof map[i][j], map[i][j]);
       if (typeof map[i][j] === 'number') {
         set.add(map[i][j]);
       }
     }
   }
+  // NB not fully assured that the functions at bottom are properly set up
 
+  let cheatPaths = 0;
   let direction = 'right';
   [currentRow, currentCol] = [0, 0];
   while (true) {
-
+    if (direction === 'right') {
+      if (currentCol === columns - 1) {
+        direction = 'down';
+      } else {
+        moveSetRight(set, rows, cols, [currentRow, currentCol], map);
+        currentCol++;
+        countShortcutsInSet(cheatPaths, set, map[currentRow][currentCol], cheatSeconds);
+      }
+    } else if (direction === 'left') {
+      if (currentCol === 0) {
+        direction = 'down';
+      } else {
+        moveSetLeft(set, rows, cols, [currentRow, currentCol], map);
+        currentCol--;
+        countShortcutsInSet(cheatPaths, set, map[currentRow][currentCol], cheatSeconds);
+      }
+    } else if (direction === 'down') {
+      moveSetDown(set, rows, cols, [currentRow, currentCol], map);
+      currentRow++;
+      countShortcutsInSet(cheatPaths, set, map[currentRow][currentCol], cheatSeconds);
+      currentCol === 0 ? direction = 'right' : direction = 'left';
+    }
+    if (row === rows - 1) {
+      if ((col === 0 && direction === 'left') || (col === cols - 1 && direction === 'right')) break;
+    }
   }
+  console.log({ cheatPaths });
 }
 
 function parseMap(mapText) {
@@ -108,17 +140,17 @@ function visualiseMap(map) {
   }
   console.log(str);
 }
-function moveRight(set, rows, cols, [currentRow, currentCol], map) {
-  // remove the diagonal being left
-  for (let [row, col] = [currentRow + 20, currentCol]; row >= currentRow; row-- && col--) {
+function moveSetRight(set, rows, cols, [currentRow, currentCol], map) {
+  // remove the diagonal bottom-left
+  for (let [row, col] = [currentRow + cheatTime, currentCol]; row >= currentRow; row-- && col--) {
     if (row < rows && col > 0) {
       if (typeof map[row][col] === 'number') {
         set.delete(map[row][col]);
       }
     }
   }
-  // add the diagonal being entered
-  for (let [row, col] = [currentRow + 20, currentCol + 1]; row >= currentRow; row-- && col++) {
+  // add the diagonal bottom-right
+  for (let [row, col] = [currentRow + cheatTime, currentCol + 1]; row >= currentRow; row-- && col++) {
     if (row < rows && col < cols) {
       if (typeof map[row][col] === 'number') {
         set.add(map[row][col]);
@@ -126,25 +158,12 @@ function moveRight(set, rows, cols, [currentRow, currentCol], map) {
     }
   }
 }
-function moveDown(set, rows, cols, [currentRow, currentCol], map) {
-  // remove the diagonal top-left
-  for (let [row, col] = [currentRow - 20, currentCol]; row >= currentRow; row++ && col--) {
-    if (row > 0 && col > 0) {
-      if (typeof map[row][col] === 'number') {
-        set.delete(map[row][col]);
-      }
-    }
-  }
-  // remove the diagonal top-right
-  for (let [row, col] = [currentRow - 20, currentCol]; row >= currentRow; row++ && col++) {
-    if (row > 0 && col < cols) {
-      if (typeof map[row][col] === 'number') {
-        set.delete(map[row][col]);
-      }
-    }
-  }
+function moveSetDown(set, rows, cols, [currentRow, currentCol], map) {
+  // remove the row being left
+
+
   // add the diagonal bottom-left
-  for (let [row, col] = [currentRow + 21, currentCol]; row >= currentRow; row-- && col--) {
+  for (let [row, col] = [currentRow + cheatTime + 1, currentCol]; row >= currentRow; row-- && col--) {
     if (row < rows && col > 0) {
       if (typeof map[row][col] === 'number') {
         set.add(map[row][col]);
@@ -152,7 +171,7 @@ function moveDown(set, rows, cols, [currentRow, currentCol], map) {
     }
   }
   // add the diagonal bottom-right
-  for (let [row, col] = [currentRow + 21, currentCol]; row >= currentRow; row-- && col++) {
+  for (let [row, col] = [currentRow + cheatTime + 1, currentCol]; row >= currentRow; row-- && col++) {
     if (row < rows && col < cols) {
       if (typeof map[row][col] === 'number') {
         set.add(map[row][col]);
@@ -160,9 +179,9 @@ function moveDown(set, rows, cols, [currentRow, currentCol], map) {
     }
   }
 }
-function moveLeft(set, rows, cols, [currentRow, currentCol], map) {
+function moveSetLeft(set, rows, cols, [currentRow, currentCol], map) {
   // add the diagonal being entered
-  for (let [row, col] = [currentRow + 20, currentCol]; row >= currentRow; row-- && col--) {
+  for (let [row, col] = [currentRow + cheatTime, currentCol]; row >= currentRow; row-- && col--) {
     if (row < rows && col > 0) {
       if (typeof map[row][col] === 'number') {
         set.add(map[row][col]);
@@ -170,11 +189,18 @@ function moveLeft(set, rows, cols, [currentRow, currentCol], map) {
     }
   }
   // remove the diagonal being left
-  for (let [row, col] = [currentRow + 20, currentCol + 1]; row >= currentRow; row-- && col++) {
+  for (let [row, col] = [currentRow + cheatTime, currentCol + 1]; row >= currentRow; row-- && col++) {
     if (row < rows && col < cols) {
       if (typeof map[row][col] === 'number') {
         set.delete(map[row][col]);
       }
     }
   }
+}
+function countShortcutsInSet(count, set, currentValue, cheatSeconds) {
+  set.forEach((setMember) => {
+    if (Math.abs(setMember - currentValue) >= cheatSeconds) {
+      count++;
+    }
+  })
 }
